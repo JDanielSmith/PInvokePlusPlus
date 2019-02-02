@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28516.95
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JDanielSmith.InteropServices", "JDanielSmith.InteropServices\JDanielSmith.InteropServices.csproj", "{81910ABE-89F2-4EEC-A512-EABC6FC41435}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA8C27C0-45B0-4655-8343-F4B56EABFE2A}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81910ABE-89F2-4EEC-A512-EABC6FC41435}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81910ABE-89F2-4EEC-A512-EABC6FC41435}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81910ABE-89F2-4EEC-A512-EABC6FC41435}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81910ABE-89F2-4EEC-A512-EABC6FC41435}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9D6928F4-D481-4F5D-939E-F5D496F083A4}
+	EndGlobalSection
+EndGlobal
