@@ -118,17 +118,14 @@ namespace JDanielSmith.Runtime.InteropServices
 			{
 				retval.Append(", EntryPoint=\"" + entryPoint + '"');
 			}
-			if ((charSet != System.Runtime.InteropServices.CharSet.None) && ((int)charSet != 0))
+			if (charSet != System.Runtime.InteropServices.CharSet.None)
 			{
 				retval.Append(", Charset = " + charSet.ToString());
 			}
 			retval.Append(", SetLastError=" + (setLastError ? "true" : "false"));
 			retval.Append(", ExactSpelling=" + (exactSpelling ? "true" : "false"));
 			retval.Append(", PreserveSig=" + (preserveSig ? "true" : "false"));
-			if ((int)callingConvention != 0)
-			{
-				retval.Append(", CallingConvention=" + callingConvention.ToString());
-			}
+			retval.Append(", CallingConvention=" + callingConvention.ToString());
 			retval.Append(", BestFitMapping=" + (bestFitMapping ? "true" : "false"));
 			retval.Append(", ThrowOnUnmappableChar=" + (throwOnUnmappableChar ? "true" : "false"));
 			return retval.ToString();
