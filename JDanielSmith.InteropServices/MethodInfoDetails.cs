@@ -91,7 +91,9 @@ namespace JDanielSmith.Runtime.InteropServices
 			// By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
 			// should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
 			//
-			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=false, EntryPoint="*")
+			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
+			// 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
+
 
 			// ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)
 			if (!dllImportAttribute.ExactSpelling) return false;
@@ -120,12 +122,12 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 			if (charSet != System.Runtime.InteropServices.CharSet.None)
 			{
-				retval.Append(", Charset = " + charSet.ToString());
+				//retval.Append(", Charset = " + charSet.ToString());
 			}
 			retval.Append(", SetLastError=" + (setLastError ? "true" : "false"));
 			retval.Append(", ExactSpelling=" + (exactSpelling ? "true" : "false"));
 			retval.Append(", PreserveSig=" + (preserveSig ? "true" : "false"));
-			retval.Append(", CallingConvention=" + callingConvention.ToString());
+			//retval.Append(", CallingConvention=" + callingConvention.ToString());
 			retval.Append(", BestFitMapping=" + (bestFitMapping ? "true" : "false"));
 			retval.Append(", ThrowOnUnmappableChar=" + (throwOnUnmappableChar ? "true" : "false"));
 			return retval.ToString();

@@ -14,7 +14,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "std_exports", "std_exports\std_exports.vcxproj", "{1811C3BC-ED31-4341-B120-207E97A8DF52}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTestsCpp", "UnitTestsCpp\UnitTestsCpp.vcxproj", "{F549D155-7EFF-49F0-A982-A68B39DAB2A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTestCpp", "UnitTestCpp\UnitTestCpp.vcxproj", "{F549D155-7EFF-49F0-A982-A68B39DAB2A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestInteropServices", "UnitTestInteropServices\UnitTestInteropServices.csproj", "{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F549D155-7EFF-49F0-A982-A68B39DAB2A6} = {F549D155-7EFF-49F0-A982-A68B39DAB2A6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +53,14 @@ Global
 		{F549D155-7EFF-49F0-A982-A68B39DAB2A6}.Release|x64.Build.0 = Release|x64
 		{F549D155-7EFF-49F0-A982-A68B39DAB2A6}.Release|x86.ActiveCfg = Release|Win32
 		{F549D155-7EFF-49F0-A982-A68B39DAB2A6}.Release|x86.Build.0 = Release|Win32
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Debug|x64.ActiveCfg = Debug|x64
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Debug|x64.Build.0 = Debug|x64
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Debug|x86.ActiveCfg = Debug|x86
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Debug|x86.Build.0 = Debug|x86
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Release|x64.ActiveCfg = Release|x64
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Release|x64.Build.0 = Release|x64
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Release|x86.ActiveCfg = Release|x86
+		{5598512E-AC1B-4033-9FF2-4A0E4B71AC5A}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
