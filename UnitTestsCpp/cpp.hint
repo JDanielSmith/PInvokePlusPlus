@@ -1,0 +1,2 @@
+#define UNITTESTSCPP_API __declspec(dllexport)
+#define UNITTESTSCPP_API __declspec(dllimport)
