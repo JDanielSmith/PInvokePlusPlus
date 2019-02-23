@@ -31,46 +31,38 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			{ typeof(void), "X" },
 		};
-
-		string typeToString(string functionName, Type type, CharSet charSet = CharSet.Unicode)
+		static string typeToString(Type type, CharSet charSet)
 		{
-			switch (charSet)
+			if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
 			{
-				case CharSet.Unicode:
-					{
-						return typeToString_[type];
-					}
-				case CharSet.Ansi:
-					{
-						if (type == typeof(Char))
-							return "D"; // char
-						else
-							return typeToString_[type];
-					}
-				case CharSet.Auto:
-					{
-						if (functionName.EndsWith("W", StringComparison.Ordinal))
-							return typeToString(functionName, type, CharSet.Unicode);
-						else if (functionName.EndsWith("A", StringComparison.Ordinal))
-							return typeToString(functionName, type, CharSet.Ansi);
-
-						goto default;
-					}
-				default:
-					throw new InvalidOperationException("Unknown 'CharSet' value: " + charSet.ToString());
+				return "D"; // char
 			}
+
+			return typeToString_[type];
 		}
 
-		string getReturn(string functionName, ParameterInfo returnParameter, CharSet charSet = CharSet.Unicode)
+		string getStringForType(Type type, CharSet charSet)
+		{
+			string retval = "";
+			if (type == typeof(String))
+			{
+				retval = "PEB"; // const __int64 pointer
+				type = typeof(Char);
+			}
+
+			return retval + typeToString(type, charSet);
+		}
+
+		string getReturn(string functionName, ParameterInfo returnParameter, CharSet charSet)
 		{
 			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
 			// A - no CV modifier
 			string ret = "A";
-			string value = typeToString(functionName, returnParameter.ParameterType, charSet);
+			string value = getStringForType(returnParameter.ParameterType, charSet);
 			return ret + value;
 		}
 
-		string getParameter(string functionName, ParameterInfo parameter, CharSet charSet = CharSet.Unicode)
+		string getParameter(string functionName, ParameterInfo parameter, CharSet charSet)
 		{
 			// Type modifier
 			// A - reference
@@ -83,11 +75,13 @@ namespace JDanielSmith.Runtime.InteropServices
 			// A - none
 			// B - const
 
+			// "const wchar_t*" -> PEB_W
 
-			return typeToString(functionName, parameter.ParameterType, charSet);
+
+			return getStringForType(parameter.ParameterType, charSet);
 		}
 
-		public string Mangle(MethodInfo method)
+		public string Mangle(MethodInfo method, CharSet charSet = CharSet.Unicode)
 		{
 			// foo - name
 			var name = method.Name;
@@ -97,14 +91,14 @@ namespace JDanielSmith.Runtime.InteropServices
 			string parameters = String.Empty;
 			foreach (var parameter in method.GetParameters())
 			{
-				parameters += getParameter(name, parameter);
+				parameters += getParameter(name, parameter, charSet);
 			}
 			if (!String.IsNullOrWhiteSpace(parameters))
 				parameters += "@"; // end of parameter list
 			else
 				parameters = typeToString_[typeof(void)];
 
-			var returnType = getReturn(name, method.ReturnParameter);
+			var returnType = getReturn(name, method.ReturnParameter, charSet);
 
 			// ? - decorated name
 			// name@ - name fragment

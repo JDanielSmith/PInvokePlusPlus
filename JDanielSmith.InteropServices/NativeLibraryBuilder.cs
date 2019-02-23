@@ -54,7 +54,7 @@ namespace JDanielSmith
 		{
 			var strGuid = System.Guid.NewGuid().ToString().Replace('-', '_');
 			var namespaceName = myNamespace + ".Namespace_" + strGuid; // a unique namespace; e.g., "JDanielSmith.NativeLibraryBuilder.Namespace_<guid>"
-			var interfaceFullName = interfaceType.FullName.Replace('+', '.');
+			var interfaceFullName = interfaceType.FullName.Replace('+', '.'); // '+' in nested classes
 			// e.g., for an interface of "My.Namespace.INativeMethods", our implmentation class is "My_Namespace_INativeMethods_Implementation"
 			var className = interfaceFullName.Replace('.', '_') + "_Implementation";
 			string text = @"namespace " + namespaceName + @"

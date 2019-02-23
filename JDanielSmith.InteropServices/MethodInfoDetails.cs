@@ -15,7 +15,7 @@ namespace JDanielSmith.Runtime.InteropServices
 	/// </summary>
 	class MethodInfoDetails
 	{
-		readonly Dictionary<Type, MetadataReference> references_ = new Dictionary<Type, MetadataReference>(); // use a dictionary to avoid duplicates
+		readonly Dictionary<string, MetadataReference> references_ = new Dictionary<string, MetadataReference>(); // use a dictionary to avoid duplicates
 		public IEnumerable<MetadataReference> References => references_.Values;
 
 		readonly string Dll;
@@ -34,10 +34,11 @@ namespace JDanielSmith.Runtime.InteropServices
 
 		void AddReference(Type type)
 		{
-			if (!references_.ContainsKey(type))
+			string location = type.Assembly.Location;
+			if (!references_.ContainsKey(location))
 			{
-				var metadataReference = MetadataReference.CreateFromFile(type.Assembly.Location);
-				references_.Add(type, metadataReference);
+				var metadataReference = MetadataReference.CreateFromFile(location);
+				references_.Add(location, metadataReference);
 			}
 		}
 		void AddReferences(MethodInfo method)
@@ -110,6 +111,16 @@ namespace JDanielSmith.Runtime.InteropServices
 			return dllImportAttribute.EntryPoint == "*"; // explicilty turn on name-mangling
 		}
 
+		static readonly System.Runtime.InteropServices.DllImportAttribute DefaultDllImportAttribute = new System.Runtime.InteropServices.DllImportAttribute("a dummy name:|/\\"); // include characters that can't be part of any filename
+
+		static void MakeDllImportArgument(StringBuilder retval, string name, bool arg, bool defArg)
+		{
+			if (arg != defArg)
+			{
+				retval.Append(", " + name + "=" + (arg ? "true" : "false"));
+			}
+		}
+
 		string MakeDllImportArguments(string entryPoint, System.Runtime.InteropServices.CharSet charSet,
 			bool setLastError, bool exactSpelling, bool preserveSig,
 			System.Runtime.InteropServices.CallingConvention callingConvention,
@@ -120,16 +131,23 @@ namespace JDanielSmith.Runtime.InteropServices
 			{
 				retval.Append(", EntryPoint=\"" + entryPoint + '"');
 			}
-			if (charSet != System.Runtime.InteropServices.CharSet.None)
+			if (charSet != DefaultDllImportAttribute.CharSet)
 			{
-				//retval.Append(", Charset = " + charSet.ToString());
+				retval.Append(", CharSet = System.Runtime.InteropServices.CharSet." + charSet.ToString());
 			}
-			retval.Append(", SetLastError=" + (setLastError ? "true" : "false"));
-			retval.Append(", ExactSpelling=" + (exactSpelling ? "true" : "false"));
-			retval.Append(", PreserveSig=" + (preserveSig ? "true" : "false"));
-			//retval.Append(", CallingConvention=" + callingConvention.ToString());
-			retval.Append(", BestFitMapping=" + (bestFitMapping ? "true" : "false"));
-			retval.Append(", ThrowOnUnmappableChar=" + (throwOnUnmappableChar ? "true" : "false"));
+
+			MakeDllImportArgument(retval, "SetLastError", setLastError, DefaultDllImportAttribute.SetLastError);
+			MakeDllImportArgument(retval, "ExactSpelling", exactSpelling, DefaultDllImportAttribute.ExactSpelling);
+			MakeDllImportArgument(retval, "PreserveSig", preserveSig, DefaultDllImportAttribute.PreserveSig);
+
+			if (callingConvention != DefaultDllImportAttribute.CallingConvention)
+			{
+				retval.Append(", CallingConvention=" + callingConvention.ToString());
+			}
+
+			MakeDllImportArgument(retval, "BestFitMapping", bestFitMapping, DefaultDllImportAttribute.BestFitMapping);
+			MakeDllImportArgument(retval, "ThrowOnUnmappableChar", throwOnUnmappableChar, DefaultDllImportAttribute.ThrowOnUnmappableChar);
+
 			return retval.ToString();
 		}
 
@@ -150,7 +168,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			else
 			{
 				dllImport += Dll + @"""";
-				string entryPoint = EntrypointMangler.Mangle(method);
+				string entryPoint = EntrypointMangler.Mangle(method, dllImportAttribute.CharSet);
 				// EntryPoint, CharSet, SetLastError, ExactSpelling, PreserveSig, CallingConvention, BestFitMapping, ThrowOnUnmappableChar
 				dllImport += MakeDllImportArguments(entryPoint, dllImportAttribute.CharSet,
 					dllImportAttribute.SetLastError, dllImportAttribute.ExactSpelling, dllImportAttribute.PreserveSig,
