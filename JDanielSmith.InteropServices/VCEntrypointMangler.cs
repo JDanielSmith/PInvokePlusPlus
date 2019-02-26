@@ -41,7 +41,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return typeToString_[type];
 		}
 
-		string getStringForType(Type type, CharSet charSet)
+		static string getStringForType(Type type, CharSet charSet)
 		{
 			string retval = "";
 			if (type == typeof(String))
@@ -53,7 +53,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return retval + typeToString(type, charSet);
 		}
 
-		string getReturn(string functionName, ParameterInfo returnParameter, CharSet charSet)
+		string getReturn(ParameterInfo returnParameter, CharSet charSet)
 		{
 			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
 			// A - no CV modifier
@@ -62,7 +62,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return ret + value;
 		}
 
-		string getParameter(string functionName, ParameterInfo parameter, CharSet charSet)
+		string getParameter(ParameterInfo parameter, CharSet charSet)
 		{
 			// Type modifier
 			// A - reference
@@ -81,29 +81,67 @@ namespace JDanielSmith.Runtime.InteropServices
 			return getStringForType(parameter.ParameterType, charSet);
 		}
 
+		private static string getCppNamespace(MethodInfo method)
+		{
+			var ns = method.DeclaringType.Namespace;
+
+			// We'll look for the start of a C++ namespace in one of three places: "global::DllImport" (sure, why not?),
+			// "... .DllImport. ...", and "... ._. ..." (because "DllImport" is a lot of typing).
+			int skip = 1;
+			int cppNsStart = ns.IndexOf("DllImport.", StringComparison.InvariantCulture);
+			if (cppNsStart < 0)
+			{
+				skip = 2;
+				cppNsStart = ns.IndexOf(".DllImport.", StringComparison.InvariantCulture);
+				if (cppNsStart < 0)
+				{
+					cppNsStart = ns.IndexOf("._.", StringComparison.InvariantCulture);
+				}
+			}
+
+			string retval = "";
+			if (cppNsStart >= 0)
+			{
+				var cppNs = ns.Substring(cppNsStart);
+				var names = cppNs.Split('.');
+				var cppNames = names.Skip(skip).Reverse(); // ignore the marker and reverse the order
+				foreach (var cppName in cppNames)
+				{
+					retval += "@" + cppName;
+				}
+			}
+
+			return retval;
+		}
+
+		private static string getName(MethodInfo method)
+		{
+			string cppNs = getCppNamespace(method);
+
+			// foo - name
+			return method.Name + cppNs;
+		}
+
 		public string Mangle(MethodInfo method, CharSet charSet = CharSet.Unicode)
 		{
-			// foo - name
-			var name = method.Name;
-
 			string access = "Y"; // "none" (not public/private/protected static/virtual/thunk)
 
 			string parameters = String.Empty;
 			foreach (var parameter in method.GetParameters())
 			{
-				parameters += getParameter(name, parameter, charSet);
+				parameters += getParameter(parameter, charSet);
 			}
 			if (!String.IsNullOrWhiteSpace(parameters))
 				parameters += "@"; // end of parameter list
 			else
 				parameters = typeToString_[typeof(void)];
 
-			var returnType = getReturn(name, method.ReturnParameter, charSet);
+			var returnType = getReturn(method.ReturnParameter, charSet);
 
 			// ? - decorated name
 			// name@ - name fragment
 			// @Z - end
-			return "?" + name + "@@" + access + returnType + parameters + "Z";
+			return "?" + getName(method) + "@@" + access + returnType + parameters + "Z";
 		}
 	}
 }

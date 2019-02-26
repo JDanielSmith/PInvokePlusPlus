@@ -35,3 +35,31 @@ __declspec(dllexport) int f_strlen(const char* s)
 {
 	return strlen(s); // ?f_strlen@@YAHPEBD@Z
 }
+
+struct __declspec(dllexport) C
+{
+	static int f_int_int(int i)
+	{
+		return i + 1;
+	}
+};
+
+namespace my
+{
+	namespace ns
+	{
+		__declspec(dllexport) extern int f_int_int(int i)
+		{
+			return i + 10;
+		}
+
+		struct __declspec(dllexport) C
+		{
+			static int f_int_int(int i)
+			{
+				return i + 100;
+			}
+		};
+	}
+}
+
