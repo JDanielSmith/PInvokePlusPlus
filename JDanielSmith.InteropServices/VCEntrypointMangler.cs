@@ -114,7 +114,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return retval;
 		}
 
-		private static string getName(MethodInfo method)
+		private static string getName(MethodInfo method, bool staticMethodInClass)
 		{
 			string cppNs = getCppNamespace(method);
 
@@ -122,9 +122,13 @@ namespace JDanielSmith.Runtime.InteropServices
 			return method.Name + cppNs;
 		}
 
-		public string Mangle(MethodInfo method, CharSet charSet = CharSet.Unicode)
+		public string Mangle(MethodInfo method, bool staticMethodInClass, CharSet charSet = CharSet.Unicode)
 		{
 			string access = "Y"; // "none" (not public/private/protected static/virtual/thunk)
+			if (staticMethodInClass)
+			{
+				access = "S"; // "static"
+			}
 
 			string parameters = String.Empty;
 			foreach (var parameter in method.GetParameters())
@@ -141,7 +145,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			// ? - decorated name
 			// name@ - name fragment
 			// @Z - end
-			return "?" + getName(method) + "@@" + access + returnType + parameters + "Z";
+			return "?" + getName(method, staticMethodInClass) + "@@" + access + returnType + parameters + "Z";
 		}
 	}
 }

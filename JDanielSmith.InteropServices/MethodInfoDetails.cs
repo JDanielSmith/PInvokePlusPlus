@@ -95,7 +95,6 @@ namespace JDanielSmith.Runtime.InteropServices
 			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
 			// 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
 
-
 			// ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)
 			if (!dllImportAttribute.ExactSpelling) return false;
 
@@ -107,8 +106,9 @@ namespace JDanielSmith.Runtime.InteropServices
 			if (!String.IsNullOrWhiteSpace(dllImportAttribute.Value)) return false;
 
 			// '*' is a common "wildcard" which seems like a decent EntryPoint name to indicate
-			// name-mangling is desired.
-			return dllImportAttribute.EntryPoint == "*"; // explicilty turn on name-mangling
+			// name-mangling is desired. '=' is also used to indicate name-mangling, in this case,
+			// the interface name is the class name for 'static' methods
+			return (dllImportAttribute.EntryPoint == "*") || (dllImportAttribute.EntryPoint == "="); ; // explicilty turn on name-mangling
 		}
 
 		static readonly System.Runtime.InteropServices.DllImportAttribute DefaultDllImportAttribute = new System.Runtime.InteropServices.DllImportAttribute("a dummy name:|/\\"); // include characters that can't be part of any filename
@@ -167,8 +167,10 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 			else
 			{
+				bool staticMethodInClass = dllImportAttribute.EntryPoint == "=";
+
 				dllImport += Dll + @"""";
-				string entryPoint = EntrypointMangler.Mangle(method, dllImportAttribute.CharSet);
+				string entryPoint = EntrypointMangler.Mangle(method, staticMethodInClass, dllImportAttribute.CharSet);
 				// EntryPoint, CharSet, SetLastError, ExactSpelling, PreserveSig, CallingConvention, BestFitMapping, ThrowOnUnmappableChar
 				dllImport += MakeDllImportArguments(entryPoint, dllImportAttribute.CharSet,
 					dllImportAttribute.SetLastError, dllImportAttribute.ExactSpelling, dllImportAttribute.PreserveSig,

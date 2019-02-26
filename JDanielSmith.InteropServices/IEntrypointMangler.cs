@@ -5,6 +5,6 @@ namespace JDanielSmith.Runtime.InteropServices
 {
 	public interface IEntrypointMangler
 	{
-		string Mangle(MethodInfo method, CharSet charSet);
+		string Mangle(MethodInfo method, bool staticMethodInClass, CharSet charSet);
 	}
 }
