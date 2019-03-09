@@ -40,7 +40,7 @@ struct __declspec(dllexport) C
 {
 	static int f_int_int(int i)
 	{
-		return i + 1;
+		return i + 2;
 	}
 };
 
@@ -50,14 +50,14 @@ namespace my
 	{
 		__declspec(dllexport) extern int f_int_int(int i)
 		{
-			return i + 10;
+			return i + 3;
 		}
 
 		struct __declspec(dllexport) C
 		{
 			static int f_int_int(int i)
 			{
-				return i + 100;
+				return i + 4;
 			}
 		};
 	}

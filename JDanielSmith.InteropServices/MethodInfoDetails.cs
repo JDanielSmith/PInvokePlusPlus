@@ -86,29 +86,51 @@ namespace JDanielSmith.Runtime.InteropServices
 			text += "{ return " + bodyArgs.ToString() + " }";
 			return text;
 		}
+        static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(JDanielSmith.Runtime.InteropServices.DllImportAttribute dllImportAttribute)
+        {
+            // There are three types of mangled names names:
+            // * global functions, perhaps inside of a namespace
+            // * "static" methods, inside a class
+            // * "instance" method, inside a class using the "this" pointer
+            //
+            // There isn't any way with just an interface method to distinguish between
+            // these.  So, we'll overload the "EntryPoint" property a little bit (to avoid
+            // creating a new [Attribute]).
+            // * "::" means a global function, ::foo::bar::baz()
+            // * "." means a static method
+            // * "->" means an instance mthod, this->foo()
+            var entryPoint = dllImportAttribute.EntryPoint;
+            if (entryPoint.StartsWith("::", StringComparison.Ordinal))
+                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC;
+            if (entryPoint.StartsWith(".", StringComparison.Ordinal))
+                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL;
+            if (entryPoint.StartsWith("->", StringComparison.Ordinal))
+                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL;
 
-		static bool shouldMangleName(JDanielSmith.Runtime.InteropServices.DllImportAttribute dllImportAttribute)
+            return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
+        }
+
+        static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) shouldMangleName(JDanielSmith.Runtime.InteropServices.DllImportAttribute dllImportAttribute)
 		{
-			// By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
-			// should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
-			//
-			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
-			// 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
+            // By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
+            // should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
+            //
+            // To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
+            // 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
 
-			// ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)
-			if (!dllImportAttribute.ExactSpelling) return false;
+            var dontMangle = (false, System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH);
+            // ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)
+            if (!dllImportAttribute.ExactSpelling) return dontMangle;
 
 			// PreserveSig=true means don't try to turn a return value into an Exception
-			if (!dllImportAttribute.PreserveSig) return false;
+			if (!dllImportAttribute.PreserveSig) return dontMangle;
 
 			// For now (at least), the attribute's Value (DLL name) should be empty; this is because
 			// the DLL name is specified as an argument to ActivateInterface()
-			if (!String.IsNullOrWhiteSpace(dllImportAttribute.Value)) return false;
+			if (!String.IsNullOrWhiteSpace(dllImportAttribute.Value)) return dontMangle;
 
-			// '*' is a common "wildcard" which seems like a decent EntryPoint name to indicate
-			// name-mangling is desired. '=' is also used to indicate name-mangling, in this case,
-			// the interface name is the class name for 'static' methods
-			return (dllImportAttribute.EntryPoint == "*") || (dllImportAttribute.EntryPoint == "="); ; // explicilty turn on name-mangling
+            var funcKind = GetFUNCKIND(dllImportAttribute);
+            return ((funcKind != System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH), funcKind);
 		}
 
 		static readonly System.Runtime.InteropServices.DllImportAttribute DefaultDllImportAttribute = new System.Runtime.InteropServices.DllImportAttribute("a dummy name:|/\\"); // include characters that can't be part of any filename
@@ -121,7 +143,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 		}
 
-		string MakeDllImportArguments(string entryPoint, System.Runtime.InteropServices.CharSet charSet,
+		static string MakeDllImportArguments(string entryPoint, System.Runtime.InteropServices.CharSet charSet,
 			bool setLastError, bool exactSpelling, bool preserveSig,
 			System.Runtime.InteropServices.CallingConvention callingConvention,
 			bool bestFitMapping, bool throwOnUnmappableChar)
@@ -156,7 +178,9 @@ namespace JDanielSmith.Runtime.InteropServices
 			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
 
 			string dllImport = @"[System.Runtime.InteropServices.DllImport(""";
-			if (!shouldMangleName(dllImportAttribute))
+
+            var (mangleName, funcKind) = shouldMangleName(dllImportAttribute);
+			if (!mangleName)
 			{
 				var dll = String.IsNullOrWhiteSpace(dllImportAttribute.Value) ? Dll : dllImportAttribute.Value;
 				dllImport += dll + @"""";
@@ -167,10 +191,8 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 			else
 			{
-				bool staticMethodInClass = dllImportAttribute.EntryPoint == "=";
-
-				dllImport += Dll + @"""";
-				string entryPoint = EntrypointMangler.Mangle(method, staticMethodInClass, dllImportAttribute.CharSet);
+                dllImport += Dll + @"""";
+				string entryPoint = EntrypointMangler.Mangle(method, funcKind, dllImportAttribute.CharSet);
 				// EntryPoint, CharSet, SetLastError, ExactSpelling, PreserveSig, CallingConvention, BestFitMapping, ThrowOnUnmappableChar
 				dllImport += MakeDllImportArguments(entryPoint, dllImportAttribute.CharSet,
 					dllImportAttribute.SetLastError, dllImportAttribute.ExactSpelling, dllImportAttribute.PreserveSig,
