@@ -42,6 +42,12 @@ struct __declspec(dllexport) C
 	{
 		return i + 2;
 	}
+
+	int g_int_int(int)
+	{
+		auto i = reinterpret_cast<int>(this);
+		return i + 100;
+	}
 };
 
 namespace my
@@ -58,6 +64,12 @@ namespace my
 			static int f_int_int(int i)
 			{
 				return i + 4;
+			}
+
+			int g_int_int(int)
+			{
+				auto i = reinterpret_cast<int>(this);
+				return i + 200;
 			}
 		};
 	}

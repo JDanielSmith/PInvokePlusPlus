@@ -118,14 +118,18 @@ namespace JDanielSmith.Runtime.InteropServices
 		{
 			string cppNs = getCppNamespace(method);
 
+            string className = method.DeclaringType.Name;
             if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
             {
-                string className = method.DeclaringType.Name;
+                cppNs = "@" + className + cppNs;
+            }
+            else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
+            {
                 cppNs = "@" + className + cppNs;
             }
 
-			// foo - name
-			return method.Name + cppNs;
+            // foo - name
+            return method.Name + cppNs;
 		}
 
 		public string Mangle(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind, CharSet charSet = CharSet.Unicode)
@@ -135,8 +139,12 @@ namespace JDanielSmith.Runtime.InteropServices
 			{
 				access = "S"; // "static"
 			}
+            else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
+            {
+                access = "QEA"; // member function, __thiscall, not "const"
+            }
 
-			string parameters = String.Empty;
+            string parameters = String.Empty;
 			foreach (var parameter in method.GetParameters())
 			{
 				parameters += getParameter(parameter, charSet);

@@ -71,7 +71,7 @@
     <Compile Include="call_f.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="call_ns_f.cs" />
-    <Compile Include="call_static_f.cs" />
+    <Compile Include="call_C_methods.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

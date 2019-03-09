@@ -219,7 +219,7 @@
     <Compile Include="MethodInfoDetails.cs" />
     <Compile Include="NativeLibraryBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VCEntrypointMangler.cs" />
+    <Compile Include="VCEntrypointMangler-x64.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
