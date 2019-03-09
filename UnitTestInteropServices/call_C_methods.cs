@@ -12,6 +12,9 @@ namespace UnitTestInteropServices
 
         [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
         int g_int_int(int i); // ?g_int_int@C@@QEAAHH@Z
+
+        [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
+        int g_int_int_const(int i); // ?g_int_int@C@@QEAAHH@Z
     }
 
     namespace _.my.ns
@@ -51,6 +54,14 @@ namespace UnitTestInteropServices
             var c = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<C>("UnitTestCpp");
             int actual = c.g_int_int(314);
             Assert.AreEqual(414, actual);
+        }
+
+        [TestMethod]
+        public void call_const_instance()
+        {
+            var c = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<C>("UnitTestCpp");
+            int actual = c.g_int_int_const(314);
+            Assert.AreEqual(415, actual);
         }
 
         [TestMethod]

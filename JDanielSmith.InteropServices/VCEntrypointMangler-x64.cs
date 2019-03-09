@@ -116,9 +116,11 @@ namespace JDanielSmith.Runtime.InteropServices
 
 		private static string getName(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind)
 		{
-			string cppNs = getCppNamespace(method);
+			var cppNs = getCppNamespace(method);
 
-            string className = method.DeclaringType.Name;
+            var methodName = method.Name;
+
+            var className = method.DeclaringType.Name;
             if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
             {
                 cppNs = "@" + className + cppNs;
@@ -126,10 +128,14 @@ namespace JDanielSmith.Runtime.InteropServices
             else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
             {
                 cppNs = "@" + className + cppNs;
+
+                int constIndex = methodName.LastIndexOf("_const", StringComparison.Ordinal);
+                bool isConstMethod = constIndex >= methodName.Length - "_const".Length;
+                methodName = isConstMethod ? methodName.Remove(constIndex, "_const".Length) : methodName;
             }
 
             // foo - name
-            return method.Name + cppNs;
+            return methodName + cppNs;
 		}
 
 		public string Mangle(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind, CharSet charSet = CharSet.Unicode)
@@ -141,7 +147,10 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
             else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
             {
-                access = "QEA"; // member function, __thiscall, not "const"
+                access = "QE"; // member function, __thiscall,
+
+                bool constMethod = method.Name.EndsWith("_const", StringComparison.Ordinal);
+                access += constMethod ? "B" : "A";
             }
 
             string parameters = String.Empty;
