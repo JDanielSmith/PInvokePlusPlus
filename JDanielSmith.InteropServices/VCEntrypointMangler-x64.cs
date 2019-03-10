@@ -130,7 +130,7 @@ namespace JDanielSmith.Runtime.InteropServices
                 cppNs = "@" + className + cppNs;
 
                 int constIndex = methodName.LastIndexOf("_const", StringComparison.Ordinal);
-                bool isConstMethod = constIndex >= methodName.Length - "_const".Length;
+                bool isConstMethod = constIndex == (methodName.Length - "_const".Length);
                 methodName = isConstMethod ? methodName.Remove(constIndex, "_const".Length) : methodName;
             }
 
@@ -153,8 +153,13 @@ namespace JDanielSmith.Runtime.InteropServices
                 access += constMethod ? "B" : "A";
             }
 
+            var methodParameters_ = method.GetParameters();
+			// first parameter is "this", don't use it for mangling
+			int skip = funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL ? 1 : 0; // i.e., instance method
+            var methodParameters = methodParameters_.Skip(skip);
+
             string parameters = String.Empty;
-			foreach (var parameter in method.GetParameters())
+			foreach (var parameter in methodParameters)
 			{
 				parameters += getParameter(parameter, charSet);
 			}

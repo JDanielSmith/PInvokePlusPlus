@@ -11,10 +11,10 @@ namespace UnitTestInteropServices
 		int f_int_int(int i);
 
         [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
-        int g_int_int(int i); // ?g_int_int@C@@QEAAHH@Z
+        int g_int_int(IntPtr @this, int i); // ?g_int_int@C@@QEAAHH@Z
 
         [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
-        int g_int_int_const(int i); // ?g_int_int@C@@QEAAHH@Z
+        int g_int_int_const(IntPtr @this, int i); // ?g_int_int@C@@QEAAHH@Z
     }
 
     namespace _.my.ns
@@ -25,7 +25,7 @@ namespace UnitTestInteropServices
             int f_int_int(int i);
 
             [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
-            int g_int_int(int i);
+            int g_int_int(IntPtr @this, int i);
         }
     }
 
@@ -52,7 +52,7 @@ namespace UnitTestInteropServices
         public void call_instance()
         {
             var c = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<C>("UnitTestCpp");
-            int actual = c.g_int_int(314);
+            int actual = c.g_int_int(IntPtr.Zero, 314);
             Assert.AreEqual(414, actual);
         }
 
@@ -60,7 +60,7 @@ namespace UnitTestInteropServices
         public void call_const_instance()
         {
             var c = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<C>("UnitTestCpp");
-            int actual = c.g_int_int_const(314);
+            int actual = c.g_int_int_const(IntPtr.Zero, 314);
             Assert.AreEqual(415, actual);
         }
 
@@ -68,7 +68,7 @@ namespace UnitTestInteropServices
         public void call_ns_instance()
         {
             var c = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<_.my.ns.C>("UnitTestCpp");
-            int actual = c.g_int_int(314);
+            int actual = c.g_int_int(IntPtr.Zero, 314);
             Assert.AreEqual(514, actual);
         }
     }

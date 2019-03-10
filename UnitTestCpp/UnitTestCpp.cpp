@@ -43,14 +43,12 @@ struct __declspec(dllexport) C
 		return i + 2;
 	}
 
-	int g_int_int(int)
+	int g_int_int(int i)
 	{
-		auto i = reinterpret_cast<int>(this);
 		return i + 100;
 	}
-	int g_int_int(int) const
+	int g_int_int(int i) const
 	{
-		auto i = reinterpret_cast<int>(this);
 		return i + 101;
 	}
 };
@@ -71,9 +69,8 @@ namespace my
 				return i + 4;
 			}
 
-			int g_int_int(int)
+			int g_int_int(int i)
 			{
-				auto i = reinterpret_cast<int>(this);
 				return i + 200;
 			}
 		};
