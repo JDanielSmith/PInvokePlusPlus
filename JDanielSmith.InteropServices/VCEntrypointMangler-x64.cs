@@ -34,21 +34,6 @@ namespace JDanielSmith.Runtime.InteropServices
 				{ typeof(void), "X" },
 			};
 
-			public TypeToString()
-			{
-				// Type modifier
-				// A - reference
-				// P - pointer
-
-				// CV prefix
-				// E __ptr64
-
-				// CV modifier
-				// A - none
-				// B - const
-				typeToString_[Type.GetType("System.Int32&")] = "PEA" + typeToString_[typeof(Int32)];
-			}
-
 			private string typeToString(Type type, CharSet charSet)
 			{
 				if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
@@ -59,7 +44,7 @@ namespace JDanielSmith.Runtime.InteropServices
 				return typeToString_[type];
 			}
 
-			public string AsString(Type type, CharSet charSet = CharSet.Unicode)
+			public string AsString(Type type, CharSet charSet = CharSet.Unicode, bool isConst = false)
 			{
 				string retval = "";
 				if (type == typeof(String))
@@ -68,7 +53,33 @@ namespace JDanielSmith.Runtime.InteropServices
 					type = typeof(Char);
 				}
 
-				return retval + typeToString(type, charSet);
+				string modifier = "";
+				string fullName = type.FullName;
+				if (type.IsByRef && fullName.EndsWith("&", StringComparison.Ordinal))
+				{
+					type = Type.GetType(fullName.Substring(0, fullName.Length - 1));
+
+					// Type modifier
+					// A - reference
+					// P - pointer
+
+					// CV prefix
+					// E __ptr64
+					modifier = "PE"; // pointer __ptr64
+
+					// CV modifier
+					// A - none
+					// B - const
+					modifier += isConst ? "B" : "A";
+				}
+
+				return retval + modifier + typeToString(type, charSet);
+			}
+
+			public string AsString(ParameterInfo parameter, CharSet charSet)
+			{
+				var inAttribute = parameter.GetCustomAttribute<System.Runtime.InteropServices.InAttribute>();
+				return AsString(parameter.ParameterType, charSet, inAttribute != null);
 			}
 		}
 
@@ -79,7 +90,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
 			// A - no CV modifier
 			string ret = "A";
-			string value = typeToString.AsString(returnParameter.ParameterType, charSet);
+			string value = typeToString.AsString(returnParameter, charSet);
 			return ret + value;
 		}
 
@@ -98,7 +109,7 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			// "const wchar_t*" -> PEB_W
 
-			return typeToString.AsString(parameter.ParameterType, charSet);
+			return typeToString.AsString(parameter, charSet);
 		}
 
 		private static string getCppNamespace(MethodInfo method)
