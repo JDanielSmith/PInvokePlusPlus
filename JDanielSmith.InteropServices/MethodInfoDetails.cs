@@ -50,6 +50,17 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 		}
 
+		static string GetParameterTypeName(Type parameterType)
+		{
+			string fullName = parameterType.FullName;
+			if (parameterType.IsByRef && fullName.EndsWith("&", StringComparison.Ordinal))
+			{
+				fullName = "ref " + fullName.Substring(0, fullName.Length - 1);
+			}
+
+			return fullName;
+		}
+
 		static string GetDeclParams(IEnumerable<ParameterInfo> parameters)
 		{
 			var declParams = new StringBuilder("(");
@@ -57,7 +68,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			foreach (var parameter in parameters)
 			{
 				string paramName = "p" + parameter.Position.ToString();
-				declParams.Append(prefix + parameter.ParameterType.FullName + " " + paramName);
+				declParams.Append(prefix + GetParameterTypeName(parameter.ParameterType) + " " + paramName);
 				prefix = ", ";
 			}
 			declParams.Append(")");
@@ -76,6 +87,11 @@ namespace JDanielSmith.Runtime.InteropServices
 			foreach (var parameter in parameters)
 			{
 				string paramName = "p" + parameter.Position.ToString();
+				if (parameter.ParameterType.IsByRef)
+				{
+					paramName = "ref " + paramName;
+				}
+
 				bodyArgs.Append(prefix + paramName);
 
 				prefix = ", ";

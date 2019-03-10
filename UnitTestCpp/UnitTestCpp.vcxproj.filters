@@ -38,5 +38,8 @@
     <ClCompile Include="UnitTestCpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Parameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

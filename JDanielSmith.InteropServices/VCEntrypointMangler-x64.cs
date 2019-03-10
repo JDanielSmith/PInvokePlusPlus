@@ -8,57 +8,78 @@ namespace JDanielSmith.Runtime.InteropServices
 {
 	public class VCEntrypointMangler : IEntrypointMangler
 	{
-		static readonly Dictionary<Type, string> typeToString_ = new Dictionary<Type, string>
+		internal class TypeToString
 		{
-			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
-			{ typeof(SByte), "C" }, // int8_t
-			// "D" // char
-			{ typeof(Byte), "E" }, // uint8_t, unsigned char
-
-			{ typeof(Int16), "F" },
-			{ typeof(UInt16), "G" },
-
-			{ typeof(Int32), "H" },
-			{ typeof(UInt32), "I" },
-
-			{ typeof(Int64), "_J" },
-			{ typeof(UInt64), "_K" },
-
-			{ typeof(float), "M" },
-			{ typeof(double), "N" },
-
-			{ typeof(Char), "_W" }, // wchar_t
-
-			{ typeof(void), "X" },
-		};
-		static string typeToString(Type type, CharSet charSet)
-		{
-			if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
+			readonly Dictionary<Type, string> typeToString_ = new Dictionary<Type, string>
 			{
-				return "D"; // char
+				// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
+				{ typeof(SByte), "C" }, // int8_t
+				// "D" // char
+				{ typeof(Byte), "E" }, // uint8_t, unsigned char
+
+				{ typeof(Int16), "F" },
+				{ typeof(UInt16), "G" },
+
+				{ typeof(Int32), "H" },
+				{ typeof(UInt32), "I" },
+
+				{ typeof(Int64), "_J" },
+				{ typeof(UInt64), "_K" },
+
+				{ typeof(float), "M" },
+				{ typeof(double), "N" },
+
+				{ typeof(Char), "_W" }, // wchar_t
+
+				{ typeof(void), "X" },
+			};
+
+			public TypeToString()
+			{
+				// Type modifier
+				// A - reference
+				// P - pointer
+
+				// CV prefix
+				// E __ptr64
+
+				// CV modifier
+				// A - none
+				// B - const
+				typeToString_[Type.GetType("System.Int32&")] = "PEA" + typeToString_[typeof(Int32)];
 			}
 
-			return typeToString_[type];
-		}
-
-		static string getStringForType(Type type, CharSet charSet)
-		{
-			string retval = "";
-			if (type == typeof(String))
+			private string typeToString(Type type, CharSet charSet)
 			{
-				retval = "PEB"; // const __int64 pointer
-				type = typeof(Char);
+				if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
+				{
+					return "D"; // char
+				}
+
+				return typeToString_[type];
 			}
 
-			return retval + typeToString(type, charSet);
+			public string AsString(Type type, CharSet charSet = CharSet.Unicode)
+			{
+				string retval = "";
+				if (type == typeof(String))
+				{
+					retval = "PEB"; // const __int64 pointer
+					type = typeof(Char);
+				}
+
+				return retval + typeToString(type, charSet);
+			}
 		}
+
+		static readonly TypeToString typeToString = new TypeToString();
 
 		string getReturn(ParameterInfo returnParameter, CharSet charSet)
 		{
 			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
 			// A - no CV modifier
 			string ret = "A";
-			string value = getStringForType(returnParameter.ParameterType, charSet);
+			string value = typeToString.AsString(returnParameter.ParameterType, charSet);
 			return ret + value;
 		}
 
@@ -77,8 +98,7 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			// "const wchar_t*" -> PEB_W
 
-
-			return getStringForType(parameter.ParameterType, charSet);
+			return typeToString.AsString(parameter.ParameterType, charSet);
 		}
 
 		private static string getCppNamespace(MethodInfo method)
@@ -120,18 +140,17 @@ namespace JDanielSmith.Runtime.InteropServices
 
             var methodName = method.Name;
 
-            var className = method.DeclaringType.Name;
             if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
             {
-                cppNs = "@" + className + cppNs;
+                cppNs = "@" + method.DeclaringType.Name + cppNs;
             }
             else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
             {
-                cppNs = "@" + className + cppNs;
+                cppNs = "@" + method.DeclaringType.Name + cppNs;
 
-                int constIndex = methodName.LastIndexOf("_const", StringComparison.Ordinal);
-                bool isConstMethod = constIndex == (methodName.Length - "_const".Length);
-                methodName = isConstMethod ? methodName.Remove(constIndex, "_const".Length) : methodName;
+                int lastIndex_const = methodName.LastIndexOf("_const", StringComparison.Ordinal);
+                bool isConstMethod = lastIndex_const == (methodName.Length - "_const".Length);
+                methodName = isConstMethod ? methodName.Remove(lastIndex_const, "_const".Length) : methodName;
             }
 
             // foo - name
@@ -166,7 +185,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			if (!String.IsNullOrWhiteSpace(parameters))
 				parameters += "@"; // end of parameter list
 			else
-				parameters = typeToString_[typeof(void)];
+				parameters = typeToString.AsString(typeof(void));
 
 			var returnType = getReturn(method.ReturnParameter, charSet);
 
