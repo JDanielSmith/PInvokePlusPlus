@@ -86,39 +86,56 @@ namespace JDanielSmith.Runtime.InteropServices
 			text += "{ return " + bodyArgs.ToString() + " }";
 			return text;
 		}
-        static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(JDanielSmith.Runtime.InteropServices.DllImportAttribute dllImportAttribute)
+        static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(MethodInfo method)
         {
-            // There are three types of mangled names names:
-            // * global functions, perhaps inside of a namespace
-            // * "static" methods, inside a class
-            // * "instance" method, inside a class using the "this" pointer
-            //
-            // There isn't any way with just an interface method to distinguish between
-            // these.  So, we'll overload the "EntryPoint" property a little bit (to avoid
-            // creating a new [Attribute]).
-            // * "::" means a global function, ::foo::bar::baz()
-            // * "." means a static method
-            // * "->" means an instance mthod, this->foo()
-            var entryPoint = dllImportAttribute.EntryPoint;
+			// There are three types of mangled names names:
+			// * global functions, perhaps inside of a namespace
+			// * "static" methods, inside a class
+			// * "instance" method, inside a class using the "this" pointer
+			//
+			// There isn't any way with just an interface method to distinguish between
+			// these.  So, we'll overload the "EntryPoint" property and parameter list a
+			// little bit (to avoid creating a new [Attribute]).
+			// * "::" means a global function, ::foo::bar::baz()
+			// * "." means a class method
+			// * if first parameter is named "this", it is an instance method; otherwise "static"
+
+			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
+			var entryPoint = dllImportAttribute.EntryPoint;
             if (entryPoint.StartsWith("::", StringComparison.Ordinal))
                 return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC;
-            if (entryPoint.StartsWith(".", StringComparison.Ordinal))
-                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL;
-            if (entryPoint.StartsWith("->", StringComparison.Ordinal))
-                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL;
 
-            return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
+			if (!entryPoint.StartsWith(".", StringComparison.Ordinal))
+			{
+				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
+			}
+
+			var firstParameter = method.GetParameters().FirstOrDefault();
+			if (firstParameter == null)
+			{
+				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL; // "static" method with no arguments
+			}
+
+			string firstParameterName = firstParameter.Name;
+			if (firstParameterName == "this")
+			{
+				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL;
+			}
+
+            return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL;
         }
 
-        static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) shouldMangleName(JDanielSmith.Runtime.InteropServices.DllImportAttribute dllImportAttribute)
+        static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) shouldMangleName(MethodInfo method)
 		{
-            // By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
-            // should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
-            //
-            // To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
-            // 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
+			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
 
-            var dontMangle = (false, System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH);
+			// By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
+			// should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
+			//
+			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
+			// 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
+
+			var dontMangle = (false, System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH);
             // ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)
             if (!dllImportAttribute.ExactSpelling) return dontMangle;
 
@@ -129,7 +146,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			// the DLL name is specified as an argument to ActivateInterface()
 			if (!String.IsNullOrWhiteSpace(dllImportAttribute.Value)) return dontMangle;
 
-            var funcKind = GetFUNCKIND(dllImportAttribute);
+            var funcKind = GetFUNCKIND(method);
             return ((funcKind != System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH), funcKind);
 		}
 
@@ -179,7 +196,7 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			string dllImport = @"[System.Runtime.InteropServices.DllImport(""";
 
-            var (mangleName, funcKind) = shouldMangleName(dllImportAttribute);
+            var (mangleName, funcKind) = shouldMangleName(method);
 			if (!mangleName)
 			{
 				var dll = String.IsNullOrWhiteSpace(dllImportAttribute.Value) ? Dll : dllImportAttribute.Value;

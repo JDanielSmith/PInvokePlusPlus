@@ -10,10 +10,10 @@ namespace UnitTestInteropServices
 		[DllImport("", EntryPoint = ".", ExactSpelling = true, PreserveSig = true)]
 		int f_int_int(int i);
 
-        [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
+        [DllImport("", EntryPoint = ".", ExactSpelling = true, PreserveSig = true)]
         int g_int_int(IntPtr @this, int i); // ?g_int_int@C@@QEAAHH@Z
 
-        [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
+        [DllImport("", EntryPoint = ".", ExactSpelling = true, PreserveSig = true)]
         int g_int_int_const(IntPtr @this, int i); // ?g_int_int@C@@QEAAHH@Z
     }
 
@@ -24,7 +24,7 @@ namespace UnitTestInteropServices
             [DllImport("", EntryPoint = ".", ExactSpelling = true, PreserveSig = true)]
             int f_int_int(int i);
 
-            [DllImport("", EntryPoint = "->", ExactSpelling = true, PreserveSig = true)]
+            [DllImport("", EntryPoint = ".", ExactSpelling = true, PreserveSig = true)]
             int g_int_int(IntPtr @this, int i);
         }
     }
