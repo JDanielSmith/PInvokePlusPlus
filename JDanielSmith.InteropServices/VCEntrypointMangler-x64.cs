@@ -145,13 +145,27 @@ namespace JDanielSmith.Runtime.InteropServices
 			return retval;
 		}
 
+		const string @const = "__const";
 		private static string getName(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind)
 		{
 			var cppNs = getCppNamespace(method);
 
-            var methodName = method.Name;
+			var methodName = method.Name;
 
-            if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
+			// C++ has a lot more overloads than C#, "void f(int*)" and "void f(const int*)".  We need
+			// a way to specify that "void g(ref int)" should really call f().
+			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
+			string entryPoint = dllImportAttribute.EntryPoint;
+			if (entryPoint.StartsWith("::", StringComparison.Ordinal) && (entryPoint.Length > 2))
+			{
+				methodName = entryPoint.Replace("::", String.Empty);
+			}
+			else if (entryPoint.StartsWith(".", StringComparison.Ordinal) && (entryPoint.Length > 1))
+			{
+				methodName = entryPoint.Replace(".", String.Empty);
+			}
+
+			if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
             {
                 cppNs = "@" + method.DeclaringType.Name + cppNs;
             }
@@ -159,9 +173,9 @@ namespace JDanielSmith.Runtime.InteropServices
             {
                 cppNs = "@" + method.DeclaringType.Name + cppNs;
 
-                int lastIndex_const = methodName.LastIndexOf("_const", StringComparison.Ordinal);
-                bool isConstMethod = lastIndex_const == (methodName.Length - "_const".Length);
-                methodName = isConstMethod ? methodName.Remove(lastIndex_const, "_const".Length) : methodName;
+                int lastIndex_const = methodName.LastIndexOf(@const, StringComparison.Ordinal);
+                bool isConstMethod = lastIndex_const == (methodName.Length - @const.Length);
+                methodName = isConstMethod ? methodName.Remove(lastIndex_const, @const.Length) : methodName;
             }
 
             // foo - name
@@ -179,7 +193,7 @@ namespace JDanielSmith.Runtime.InteropServices
             {
                 access = "QE"; // member function, __thiscall,
 
-                bool constMethod = method.Name.EndsWith("_const", StringComparison.Ordinal);
+                bool constMethod = method.Name.EndsWith(@const, StringComparison.Ordinal);
                 access += constMethod ? "B" : "A";
             }
 

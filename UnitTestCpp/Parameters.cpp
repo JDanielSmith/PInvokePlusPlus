@@ -10,7 +10,7 @@ __declspec(dllexport) extern int ggg(int* pI)
 	return (*pI) + 1;
 }
 
-__declspec(dllexport) extern int hhh(const int* pI)
+__declspec(dllexport) extern int ggg(const int* pI)
 {
 	return (*pI) + 1;
 }
