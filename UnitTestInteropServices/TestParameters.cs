@@ -15,6 +15,9 @@ namespace UnitTestInteropServices
 
 			[DllImport("", EntryPoint = "::ggg", ExactSpelling = true, PreserveSig = true)]
 			int ggg_const([System.Runtime.InteropServices.In] ref int i); // ?ggg@@YAHPEBH@Z
+
+			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true)]
+			int hhh(ref int i); // ?ggg@@YAHPEBH@Z
 		}
 
 		[TestMethod]
