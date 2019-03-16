@@ -10,13 +10,16 @@ namespace UnitTestInteropServices
 	{
 		public interface Parameters
 		{
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
 			int ggg(ref int i); // ?ggg@@YAHPEAH@Z
 
-			[DllImport("", EntryPoint = "::ggg", ExactSpelling = true, PreserveSig = true)]
-			int ggg_const([System.Runtime.InteropServices.In] ref int i); // ?ggg@@YAHPEBH@Z
+			[DllImport("", EntryPoint = "ggg", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
+			int ggg_const([Const] ref int i); // ?ggg@@YAHPEBH@Z
 
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
 			int hhh(ref int i); // ?ggg@@YAHPEBH@Z
 		}
 

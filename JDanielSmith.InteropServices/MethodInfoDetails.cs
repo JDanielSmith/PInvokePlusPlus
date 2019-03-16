@@ -102,7 +102,20 @@ namespace JDanielSmith.Runtime.InteropServices
 			text += "{ return " + bodyArgs.ToString() + " }";
 			return text;
 		}
-        static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(MethodInfo method)
+
+		static System.Runtime.InteropServices.ComTypes.FUNCKIND return_FUNCKIND_STATIC(MethodInfo method)
+		{
+			// should not have other attributes
+			if ((method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.StaticAttribute>() != null)
+				|| (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null))
+			{
+				throw new InvalidOperationException("[extern] cannot also be [static] or [const]");
+			}
+
+			return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC; // "extern" or free function, not a class method
+		}
+
+		static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(MethodInfo method)
         {
 			// There are three types of mangled names names:
 			// * global functions, perhaps inside of a namespace
@@ -110,35 +123,50 @@ namespace JDanielSmith.Runtime.InteropServices
 			// * "instance" method, inside a class using the "this" pointer
 			//
 			// There isn't any way with just an interface method to distinguish between
-			// these.  So, we'll overload the "EntryPoint" property and parameter list a
-			// little bit (to avoid creating a new [Attribute]).
-			// * "::" means a global function, ::foo::bar::baz()
-			// * "." means a class method
-			// * if first parameter is named "this", it is an instance method; otherwise "static"
-
-			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
-			var entryPoint = dllImportAttribute.EntryPoint;
-            if (entryPoint.StartsWith("::", StringComparison.Ordinal))
-                return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC;
-
-			if (!entryPoint.StartsWith(".", StringComparison.Ordinal))
-			{
-				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
-			}
+			// these.  So, we'll use a few heuristics ...
+			// * if the first parameter is named "this," it must be a member function
+			// * if there is a [static] attribute, the function is a "static" method
+			// * if there is an [extern] attribute, it is a global method not part of a class
+			// * otherwise, we don't know
 
 			var firstParameter = method.GetParameters().FirstOrDefault();
-			if (firstParameter == null)
+			if ((firstParameter != null) && (firstParameter.Name == "this"))
 			{
+				// Using "this" is a bit difficult (have to type "@this") and also very idiomatic; so it must be a member function
+				if ((method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.StaticAttribute>() != null)
+					|| (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ExternAttribute>() != null))
+				{
+					throw new InvalidOperationException("Member functions cannot be [extern] or [static].");
+				}
+
+				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL; // i.e., member function
+			}
+
+			if (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ExternAttribute>() != null)
+			{
+				// should not have other attributes
+				if ((method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.StaticAttribute>() != null)
+					|| (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null))
+				{
+					throw new InvalidOperationException("[extern] cannot also be [static] or [const]");
+				}
+
+				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC; // "extern" or free function, not a class method
+			}
+
+			if (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.StaticAttribute>() != null)
+			{
+				// should not have other attributes
+				if ((method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ExternAttribute>() != null)
+					|| (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null))
+				{
+					throw new InvalidOperationException("[static] cannot also be [extern] or [const]");
+				}
+
 				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL; // "static" method with no arguments
 			}
 
-			string firstParameterName = firstParameter.Name;
-			if (firstParameterName == "this")
-			{
-				return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL;
-			}
-
-            return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL;
+			return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
         }
 
         static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) shouldMangleName(MethodInfo method)
@@ -148,8 +176,8 @@ namespace JDanielSmith.Runtime.InteropServices
 			// By default, using [JDanielSmith.Runtime.InteropServices.DllImportAttribute] and NativeLibraryBuilder.ActivateInterface()
 			// should work exactly the same as directly using P/Invoke; this makes it easier to integrate with existing code.
 			//
-			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true, EntryPoint="*")
-			// 	[DllImport("", EntryPoint ="*", ExactSpelling = true, PreserveSig = true)]
+			// To enable C++ name-manging, the [DllImport] attribute must be include: (ExactSpelling=true, PreserveSig=true)
+			// 	[DllImport("", ExactSpelling = true, PreserveSig = true)]
 
 			var dontMangle = (false, System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH);
             // ExactSpelling=true means don't try to mangle "foo()" as "fooA" (ANSI) or "fooW" ("wide"/Unicode)

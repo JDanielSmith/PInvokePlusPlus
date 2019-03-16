@@ -78,8 +78,8 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			public string AsString(ParameterInfo parameter, CharSet charSet)
 			{
-				var inAttribute = parameter.GetCustomAttribute<System.Runtime.InteropServices.InAttribute>();
-				return AsString(parameter.ParameterType, charSet, inAttribute != null);
+				var constAttribute = parameter.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>();
+				return AsString(parameter.ParameterType, charSet, constAttribute != null);
 			}
 		}
 
@@ -146,6 +146,12 @@ namespace JDanielSmith.Runtime.InteropServices
 		}
 
 		const string @const = "__const";
+		private static bool IsConst(MethodInfo method)
+		{
+			return method.Name.EndsWith(@const, StringComparison.Ordinal) ||
+				method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null;
+		}
+
 		private static string getName(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind)
 		{
 			var cppNs = getCppNamespace(method);
@@ -156,13 +162,9 @@ namespace JDanielSmith.Runtime.InteropServices
 			// a way to specify that "void g(ref int)" should really call f().
 			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
 			string entryPoint = dllImportAttribute.EntryPoint;
-			if (entryPoint.StartsWith("::", StringComparison.Ordinal) && (entryPoint.Length > 2))
+			if (!String.IsNullOrWhiteSpace(entryPoint))
 			{
-				methodName = entryPoint.Replace("::", String.Empty);
-			}
-			else if (entryPoint.StartsWith(".", StringComparison.Ordinal) && (entryPoint.Length > 1))
-			{
-				methodName = entryPoint.Replace(".", String.Empty);
+				methodName = entryPoint;
 			}
 
 			if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
@@ -172,10 +174,12 @@ namespace JDanielSmith.Runtime.InteropServices
             else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
             {
                 cppNs = "@" + method.DeclaringType.Name + cppNs;
-
-                int lastIndex_const = methodName.LastIndexOf(@const, StringComparison.Ordinal);
-                bool isConstMethod = lastIndex_const == (methodName.Length - @const.Length);
-                methodName = isConstMethod ? methodName.Remove(lastIndex_const, @const.Length) : methodName;
+				if (IsConst(method))
+				{
+					int lastIndex_const = methodName.LastIndexOf(@const, StringComparison.Ordinal);
+					bool isConstMethodName = lastIndex_const == (methodName.Length - @const.Length);
+					methodName = isConstMethodName ? methodName.Remove(lastIndex_const, @const.Length) : methodName;
+				}
             }
 
             // foo - name
@@ -192,9 +196,7 @@ namespace JDanielSmith.Runtime.InteropServices
             else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
             {
                 access = "QE"; // member function, __thiscall,
-
-                bool constMethod = method.Name.EndsWith(@const, StringComparison.Ordinal);
-                access += constMethod ? "B" : "A";
+                access += IsConst(method) ? "B" : "A";
             }
 
             var methodParameters_ = method.GetParameters();

@@ -9,7 +9,8 @@ namespace UnitTestInteropServices
 	{
 		public interface UnitTestCpp_ns_f
 		{
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
 			int f_int_int(int i);
 		}
 	}

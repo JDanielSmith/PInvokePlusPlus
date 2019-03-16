@@ -10,16 +10,19 @@ namespace UnitTestInteropServices
 	{
 		public interface UnitTestCpp_f
 		{
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
 			int f_int_int(int i);
 
 			[DllImport("UnitTestCpp", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
 			int f_wcslen_C(String s);
 
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+			[Extern]
 			int f_wcslen(String s);
 
-			[DllImport("", EntryPoint = "::", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+			[DllImport("", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+			[Extern]
 			int f_strlen(String s);
 		}
 
