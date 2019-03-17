@@ -12,15 +12,19 @@ namespace UnitTestInteropServices
 		{
 			[DllImport("", ExactSpelling = true, PreserveSig = true)]
 			[Extern]
-			int ggg(ref int i); // ?ggg@@YAHPEAH@Z
+			int ggg([Ptr] ref int i); // ?ggg@@YAHPEAH@Z
 
 			[DllImport("", EntryPoint = "ggg", ExactSpelling = true, PreserveSig = true)]
 			[Extern]
-			int ggg_const([Const] ref int i); // ?ggg@@YAHPEBH@Z
+			int ggg_const([Const, Ptr] ref int i); // ?ggg@@YAHPEBH@Z
 
 			[DllImport("", ExactSpelling = true, PreserveSig = true)]
 			[Extern]
-			int hhh(ref int i); // ?ggg@@YAHPEBH@Z
+			int hhh(ref int i); // ?hhh@@YAHAEAH@Z
+
+			[DllImport("", EntryPoint = "hhh", ExactSpelling = true, PreserveSig = true)]
+			[Extern]
+			int hhh_const([Const] ref int i); // ?hhh@@YAHAEAH@Z
 		}
 
 		[TestMethod]
@@ -34,12 +38,33 @@ namespace UnitTestInteropServices
 		}
 
 		[TestMethod]
-		public void ggg_In_ref_int()
+		public void ggg_Const_ref_int()
 		{
 			var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<Parameters>("UnitTestCpp");
 			int i = 314;
 			int actual = unitTestCpp_f.ggg_const(ref i);
+			Assert.AreEqual(314, i);
 			Assert.AreEqual(315, actual);
+		}
+
+		[TestMethod]
+		public void hhh_ref_int()
+		{
+			var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<Parameters>("UnitTestCpp");
+			int i = 314;
+			int actual = unitTestCpp_f.hhh(ref i);
+			Assert.AreEqual(324, i);
+			Assert.AreEqual(424, actual);
+		}
+
+		[TestMethod]
+		public void hhh_const_ref_int()
+		{
+			var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<Parameters>("UnitTestCpp");
+			int i = 314;
+			int actual = unitTestCpp_f.hhh_const(ref i);
+			Assert.AreEqual(314, i);
+			Assert.AreEqual(415, actual);
 		}
 	}
 }

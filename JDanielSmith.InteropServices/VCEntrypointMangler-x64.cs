@@ -44,10 +44,10 @@ namespace JDanielSmith.Runtime.InteropServices
 				return typeToString_[type];
 			}
 
-			public string AsString(Type type, CharSet charSet = CharSet.Unicode, bool isConst = false)
+			private string AsString(Type type, CharSet charSet, bool isPtr, bool isConst)
 			{
 				string retval = "";
-				if (type == typeof(String))
+				if (type == typeof(String)) // -> "const wchar_t*"
 				{
 					retval = "PEB"; // const __int64 pointer
 					type = typeof(Char);
@@ -55,17 +55,18 @@ namespace JDanielSmith.Runtime.InteropServices
 
 				string modifier = "";
 				string fullName = type.FullName;
-				if (type.IsByRef && fullName.EndsWith("&", StringComparison.Ordinal))
+				if (type.IsByRef)
 				{
 					type = Type.GetType(fullName.Substring(0, fullName.Length - 1));
 
 					// Type modifier
 					// A - reference
 					// P - pointer
+					modifier = isPtr ? "P" : "A";
 
 					// CV prefix
 					// E __ptr64
-					modifier = "PE"; // pointer __ptr64
+					modifier += "E"; // pointer __ptr64
 
 					// CV modifier
 					// A - none
@@ -75,11 +76,17 @@ namespace JDanielSmith.Runtime.InteropServices
 
 				return retval + modifier + typeToString(type, charSet);
 			}
+			public string AsString(Type type)
+			{
+				return AsString(type, CharSet.Unicode, isPtr: false, isConst: false);
+			}
+
 
 			public string AsString(ParameterInfo parameter, CharSet charSet)
 			{
+				var ptrAttribute = parameter.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.PtrAttribute>();
 				var constAttribute = parameter.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>();
-				return AsString(parameter.ParameterType, charSet, constAttribute != null);
+				return AsString(parameter.ParameterType, charSet, ptrAttribute != null, constAttribute != null);
 			}
 		}
 

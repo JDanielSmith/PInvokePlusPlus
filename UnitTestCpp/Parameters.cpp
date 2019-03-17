@@ -20,3 +20,8 @@ __declspec(dllexport) extern int hhh(int& i)
 	i += 10;
 	return i + 100;
 }
+
+__declspec(dllexport) extern int hhh(const int& i)
+{
+	return i + 101;
+}
