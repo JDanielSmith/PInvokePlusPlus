@@ -7,6 +7,14 @@
 
 #include <string>
 
+extern "C"
+{
+	__declspec(dllexport) extern int f()
+	{
+		return 0;
+	}
+}
+
 __declspec(dllexport) extern int f_int_int(int i)
 {
 	return i + 1;

@@ -8,6 +8,8 @@ namespace JDanielSmith.Runtime.InteropServices
 	/// 
 	/// Intented to be a clone of System.Runtime.InteropServices.DllImportAttribute,
 	/// but can be used on methods declared in an interface.
+    ///
+    /// "The DllImport attribute must be specified on a method marked 'static' and 'extern'"
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public sealed class DllImportAttribute : Attribute

@@ -73,6 +73,7 @@
     <Compile Include="call_ns_f.cs" />
     <Compile Include="call_C_methods.cs" />
     <Compile Include="TestParameters.cs" />
+    <Compile Include="test_f_overloads.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
