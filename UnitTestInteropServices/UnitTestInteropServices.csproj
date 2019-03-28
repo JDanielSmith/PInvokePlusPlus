@@ -74,6 +74,7 @@
     <Compile Include="call_C_methods.cs" />
     <Compile Include="TestParameters.cs" />
     <Compile Include="test_f_overloads.cs" />
+    <Compile Include="test_f_in_namespaces.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

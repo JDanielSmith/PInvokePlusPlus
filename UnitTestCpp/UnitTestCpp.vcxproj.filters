@@ -44,5 +44,8 @@
     <ClCompile Include="f.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ns_f.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
