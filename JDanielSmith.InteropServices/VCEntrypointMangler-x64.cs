@@ -34,7 +34,7 @@ namespace JDanielSmith.Runtime.InteropServices
 				{ typeof(void), "X" },
 			};
 
-			private string typeToString(Type type, CharSet charSet)
+			private string AsString(Type type, CharSet charSet)
 			{
 				if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
 				{
@@ -74,7 +74,7 @@ namespace JDanielSmith.Runtime.InteropServices
 					modifier += isConst ? "B" : "A";
 				}
 
-				return retval + modifier + typeToString(type, charSet);
+				return retval + modifier + AsString(type, charSet);
 			}
 			public string AsString(Type type)
 			{
@@ -92,7 +92,7 @@ namespace JDanielSmith.Runtime.InteropServices
 
 		static readonly TypeToString typeToString = new TypeToString();
 
-		string getReturn(ParameterInfo returnParameter, CharSet charSet)
+		string GetReturn(ParameterInfo returnParameter, CharSet charSet)
 		{
 			// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
 			// A - no CV modifier
@@ -101,7 +101,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return ret + value;
 		}
 
-		string getParameter(ParameterInfo parameter, CharSet charSet)
+		string GetParameter(ParameterInfo parameter, CharSet charSet)
 		{
 			// Type modifier
 			// A - reference
@@ -119,7 +119,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return typeToString.AsString(parameter, charSet);
 		}
 
-		private static string getCppNamespace(MethodInfo method)
+		private static string GetCppNamespace(MethodInfo method)
 		{
 			var ns = method.DeclaringType.Namespace;
 
@@ -159,9 +159,9 @@ namespace JDanielSmith.Runtime.InteropServices
 				method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null;
 		}
 
-		private static string getName(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind)
+		private static string GetName(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind)
 		{
-			var cppNs = getCppNamespace(method);
+			var cppNs = GetCppNamespace(method);
 
 			var methodName = method.Name;
 
@@ -214,19 +214,19 @@ namespace JDanielSmith.Runtime.InteropServices
             string parameters = String.Empty;
 			foreach (var parameter in methodParameters)
 			{
-				parameters += getParameter(parameter, charSet);
+				parameters += GetParameter(parameter, charSet);
 			}
 			if (!String.IsNullOrWhiteSpace(parameters))
 				parameters += "@"; // end of parameter list
 			else
 				parameters = typeToString.AsString(typeof(void));
 
-			var returnType = getReturn(method.ReturnParameter, charSet);
+			var returnType = GetReturn(method.ReturnParameter, charSet);
 
 			// ? - decorated name
 			// name@ - name fragment
 			// @Z - end
-			return "?" + getName(method, funcKind) + "@@" + access + returnType + parameters + "Z";
+			return "?" + GetName(method, funcKind) + "@@" + access + returnType + parameters + "Z";
 		}
 	}
 }

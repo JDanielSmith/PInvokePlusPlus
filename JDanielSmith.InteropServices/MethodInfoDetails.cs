@@ -103,18 +103,6 @@ namespace JDanielSmith.Runtime.InteropServices
 			return text;
 		}
 
-		static System.Runtime.InteropServices.ComTypes.FUNCKIND return_FUNCKIND_STATIC(MethodInfo method)
-		{
-			// should not have other attributes
-			if ((method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.StaticAttribute>() != null)
-				|| (method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.ConstAttribute>() != null))
-			{
-				throw new InvalidOperationException("[extern] cannot also be [static] or [const]");
-			}
-
-			return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_STATIC; // "extern" or free function, not a class method
-		}
-
 		static System.Runtime.InteropServices.ComTypes.FUNCKIND GetFUNCKIND(MethodInfo method)
         {
 			// There are three types of mangled names names:
@@ -169,7 +157,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			return System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_DISPATCH; // i.e., don't know anything; try elsewhere
         }
 
-        static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) shouldMangleName(MethodInfo method)
+        static (bool, System.Runtime.InteropServices.ComTypes.FUNCKIND) ShouldMangleName(MethodInfo method)
 		{
 			var dllImportAttribute = method.GetCustomAttribute<JDanielSmith.Runtime.InteropServices.DllImportAttribute>();
 
@@ -240,7 +228,7 @@ namespace JDanielSmith.Runtime.InteropServices
 
 			string dllImport = @"[System.Runtime.InteropServices.DllImport(""";
 
-            var (mangleName, funcKind) = shouldMangleName(method);
+            var (mangleName, funcKind) = ShouldMangleName(method);
 			if (!mangleName)
 			{
 				var dll = String.IsNullOrWhiteSpace(dllImportAttribute.Value) ? Dll : dllImportAttribute.Value;
