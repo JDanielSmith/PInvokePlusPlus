@@ -75,6 +75,7 @@
     <Compile Include="TestParameters.cs" />
     <Compile Include="test_f_overloads.cs" />
     <Compile Include="test_f_in_namespaces.cs" />
+    <Compile Include="test_chars.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -43,7 +43,7 @@ namespace UnitTestInteropServices
 
             [DllImport("", EntryPoint = "f", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
             [Extern]
-            int f_5(string s); // f(const wchar_t*)
+            int f_5(string s); // f(const char*)
         }
 
         [TestMethod]
@@ -69,7 +69,11 @@ namespace UnitTestInteropServices
             Assert.AreEqual(6, actual);
 
             string s = "abc";
-            actual = unitTestCpp_f.f_5(s);
+            actual = unitTestCpp_f.f(s);
+            Assert.AreEqual(s.Length, actual);
+
+            s = "ΑΒ";
+            actual = unitTestCpp_f.f(s);
             Assert.AreEqual(s.Length, actual);
         }
 
@@ -88,6 +92,10 @@ namespace UnitTestInteropServices
             Assert.AreEqual(4, actual);
 
             string s = "abc";
+            actual = unitTestCpp_f.f_5(s);
+            Assert.AreEqual(s.Length, actual);
+            
+            s = "ΑΒ";
             actual = unitTestCpp_f.f_5(s);
             Assert.AreEqual(s.Length, actual);
         }

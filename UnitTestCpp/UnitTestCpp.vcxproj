@@ -164,6 +164,7 @@
     <ClInclude Include="UnitTestCpp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="chars.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="f.cpp" />
     <ClCompile Include="ns_f.cpp" />
