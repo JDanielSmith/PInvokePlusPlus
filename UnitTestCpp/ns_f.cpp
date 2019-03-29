@@ -8,14 +8,14 @@ namespace my
 {
 	__declspec(dllexport) extern int f()
 	{
-		return 1;
+		return 100;
 	}
 
 	namespace ns
 	{
 		__declspec(dllexport) extern int f()
 		{
-			return 2;
+			return 101;
 		}
 	}
 }
@@ -24,6 +24,6 @@ namespace ns
 {
 	__declspec(dllexport) extern int f()
 	{
-		return 3;
+		return 102;
 	}
 }

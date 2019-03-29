@@ -67,7 +67,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			string prefix = "";
 			foreach (var parameter in parameters)
 			{
-				string paramName = "p" + parameter.Position.ToString();
+				string paramName = $"p{parameter.Position}";
 				declParams.Append(prefix + GetParameterTypeName(parameter.ParameterType) + " " + paramName);
 				prefix = ", ";
 			}
@@ -86,7 +86,7 @@ namespace JDanielSmith.Runtime.InteropServices
 			string prefix = "";
 			foreach (var parameter in parameters)
 			{
-				string paramName = "p" + parameter.Position.ToString();
+				string paramName = $"p{parameter.Position}";
 				if (parameter.ParameterType.IsByRef)
 				{
 					paramName = "ref " + paramName;

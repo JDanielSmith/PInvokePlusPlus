@@ -44,7 +44,7 @@ namespace UnitTestInteropServices
             var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<UnitTestCpp._.my.UnitTestCpp_f>("UnitTestCpp");
 
             var actual = unitTestCpp_f.f();
-            Assert.AreEqual(1, actual);
+            Assert.AreEqual(100, actual);
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace UnitTestInteropServices
             var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<UnitTestCpp._.my.ns.UnitTestCpp_f>("UnitTestCpp");
 
             var actual = unitTestCpp_f.f();
-            Assert.AreEqual(2, actual);
+            Assert.AreEqual(101, actual);
         }
 
         [TestMethod]
@@ -62,7 +62,7 @@ namespace UnitTestInteropServices
             var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<UnitTestCpp._.ns.UnitTestCpp_f>("UnitTestCpp");
 
             var actual = unitTestCpp_f.f();
-            Assert.AreEqual(3, actual);
+            Assert.AreEqual(102, actual);
         }
     }
 }

@@ -165,10 +165,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="chars.cpp" />
+    <ClCompile Include="C_f.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="f.cpp" />
     <ClCompile Include="ns_f.cpp" />
-    <ClCompile Include="Parameters.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

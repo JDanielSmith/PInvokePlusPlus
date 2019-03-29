@@ -92,7 +92,7 @@ namespace JDanielSmith
 						diagnostic.Severity == DiagnosticSeverity.Error);
 
 					var diagnosticExceptions = from diagnostic in failures
-											   let message = String.Format("{0}: {1}", diagnostic.Id, diagnostic.GetMessage())
+											   let message = $"{diagnostic.Id}: {diagnostic.GetMessage()}"
 											   select new InvalidOperationException(message);
 					throw new AggregateException(diagnosticExceptions);
 				}
