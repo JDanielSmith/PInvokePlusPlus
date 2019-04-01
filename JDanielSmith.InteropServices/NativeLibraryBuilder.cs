@@ -108,7 +108,7 @@ namespace JDanielSmith
 		{
 			var interfaceType = typeof(TInterface);
 
-			var methods = GetInterfaceMethods(interfaceType);
+            var methods = GetInterfaceMethods(interfaceType);
 			var methodInfoDetails = new MethodInfoDetails(dll, interfaceType, entrypointMangler);
 
 			// https://github.com/dotnet/roslyn-sdk/blob/master/samples/CSharp/APISamples/FAQ.cs

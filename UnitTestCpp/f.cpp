@@ -38,13 +38,32 @@ __declspec(dllexport) extern int f(int* pI)
 	return (*pI) + 5;
 }
 
-__declspec(dllexport) extern int f(const char* s)
+__declspec(dllexport) extern size_t f(const char* s)
 {
 	return strlen(s);
 }
 
-__declspec(dllexport) extern int f(const wchar_t* s)
+__declspec(dllexport) extern size_t f(const wchar_t* s)
 {
 	return wcslen(s); // ?f_wcslen@@YAHPEB_W@Z
 }
 
+//__declspec(dllexport) extern size_t f(const std::string& s)
+//{
+//	return s.size();
+//}
+
+struct S; // forward
+__declspec(dllexport) extern int abc(const S*)
+{
+	return 6;
+}
+
+namespace ns
+{
+	struct S; // forward
+}
+__declspec(dllexport) extern int xyz(const ns::S*)
+{
+	return 7;
+}

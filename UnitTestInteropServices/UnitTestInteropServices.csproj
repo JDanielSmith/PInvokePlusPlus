@@ -74,6 +74,7 @@
     <Compile Include="test_f_in_namespaces.cs" />
     <Compile Include="test_chars.cs" />
     <Compile Include="test_f_in_class.cs" />
+    <Compile Include="StructParameter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

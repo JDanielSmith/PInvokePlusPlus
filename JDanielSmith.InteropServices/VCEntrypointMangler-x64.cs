@@ -33,7 +33,6 @@ namespace JDanielSmith.Runtime.InteropServices
 
 				{ typeof(void), "X" },
 			};
-
 			private string AsString(Type type, CharSet charSet)
 			{
 				if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
@@ -42,6 +41,55 @@ namespace JDanielSmith.Runtime.InteropServices
 				}
 
 				return typeToString_[type];
+			}
+
+			readonly Dictionary<string, string> typeFullNameToString_ = new Dictionary<string, string>
+			{
+				// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
+				{ typeof(SByte).FullName, "C" }, // int8_t
+				// "D" // char
+				{ typeof(Byte).FullName, "E" }, // uint8_t, unsigned char
+
+				{ typeof(Int16).FullName, "F" },
+				{ typeof(UInt16).FullName, "G" },
+
+				{ typeof(Int32).FullName, "H" },
+				{ typeof(UInt32).FullName, "I" },
+
+				{ typeof(Int64).FullName, "_J" },
+				{ typeof(UInt64).FullName, "_K" },
+
+				{ typeof(float).FullName, "M" },
+				{ typeof(double).FullName, "N" },
+
+				{ typeof(Char).FullName, "_W" }, // wchar_t
+
+				{ typeof(void).FullName, "X" },
+			};
+			private string AsString(string typeFullName, CharSet charSet)
+			{
+				if ((charSet == CharSet.Ansi) && (typeFullName == typeof(Char).FullName))
+				{
+					return "D"; // char
+				}
+
+				if (!typeFullNameToString_.ContainsKey(typeFullName))
+				{
+					return String.Empty;
+				}
+				return typeFullNameToString_[typeFullName];
+			}
+
+			static string RemoveRef(Type type)
+			{
+				if (!type.IsByRef)
+				{
+					return type.FullName;
+				}
+
+				string fullName = type.FullName;
+				var fullNameNoRef = fullName.Substring(0, fullName.Length - 1); // remove trailing "&"
+				return fullNameNoRef;
 			}
 
 			private string AsString(Type type, CharSet charSet, bool isPtr, bool isConst)
@@ -54,11 +102,8 @@ namespace JDanielSmith.Runtime.InteropServices
 				}
 
 				string modifier = "";
-				string fullName = type.FullName;
 				if (type.IsByRef)
 				{
-					type = Type.GetType(fullName.Substring(0, fullName.Length - 1));
-
 					// Type modifier
 					// A - reference
 					// P - pointer
@@ -74,7 +119,8 @@ namespace JDanielSmith.Runtime.InteropServices
 					modifier += isConst ? "B" : "A";
 				}
 
-				return retval + modifier + AsString(type, charSet);
+				var fullName = RemoveRef(type);
+				return retval + modifier + AsString(fullName, charSet);
 			}
 			public string AsString(Type type)
 			{
@@ -175,22 +221,22 @@ namespace JDanielSmith.Runtime.InteropServices
 			}
 
 			if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_NONVIRTUAL) // i.e., "static" method
-            {
-                cppNs = "@" + method.DeclaringType.Name + cppNs;
-            }
-            else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
-            {
-                cppNs = "@" + method.DeclaringType.Name + cppNs;
+			{
+				cppNs = "@" + method.DeclaringType.Name + cppNs;
+			}
+			else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
+			{
+				cppNs = "@" + method.DeclaringType.Name + cppNs;
 				if (IsConst(method))
 				{
 					int lastIndex_const = methodName.LastIndexOf(@const, StringComparison.Ordinal);
 					bool isConstMethodName = lastIndex_const == (methodName.Length - @const.Length);
 					methodName = isConstMethodName ? methodName.Remove(lastIndex_const, @const.Length) : methodName;
 				}
-            }
+			}
 
-            // foo - name
-            return methodName + cppNs;
+			// foo - name
+			return methodName + cppNs;
 		}
 
 		public string Mangle(MethodInfo method, System.Runtime.InteropServices.ComTypes.FUNCKIND funcKind, CharSet charSet = CharSet.Unicode)
@@ -200,18 +246,18 @@ namespace JDanielSmith.Runtime.InteropServices
 			{
 				access = "S"; // "static"
 			}
-            else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
-            {
-                access = "QE"; // member function, __thiscall,
-                access += IsConst(method) ? "B" : "A";
-            }
+			else if (funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL) // i.e., instance method
+			{
+				access = "QE"; // member function, __thiscall,
+				access += IsConst(method) ? "B" : "A";
+			}
 
-            var methodParameters_ = method.GetParameters();
+			var methodParameters_ = method.GetParameters();
 			// first parameter is "this", don't use it for mangling
 			int skip = funcKind == System.Runtime.InteropServices.ComTypes.FUNCKIND.FUNC_VIRTUAL ? 1 : 0; // i.e., instance method
-            var methodParameters = methodParameters_.Skip(skip);
+			var methodParameters = methodParameters_.Skip(skip);
 
-            string parameters = String.Empty;
+			string parameters = String.Empty;
 			foreach (var parameter in methodParameters)
 			{
 				parameters += GetParameter(parameter, charSet);

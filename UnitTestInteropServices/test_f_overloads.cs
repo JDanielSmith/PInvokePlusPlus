@@ -39,11 +39,15 @@ namespace UnitTestInteropServices
 
             [DllImport("", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
             [Extern]
-            int f(string s); // f(const wchar_t*)
+            ulong f(string s); // f(const wchar_t*)
 
             [DllImport("", EntryPoint = "f", ExactSpelling = true, PreserveSig = true, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
             [Extern]
-            int f_5(string s); // f(const char*)
+            ulong f_5(string s); // f(const char*)
+
+            [DllImport("", ExactSpelling = true, PreserveSig = true)]
+            [Extern]
+            int f([Ptr] ref UnitTestCpp._.ns.S s);
         }
 
         [TestMethod]
@@ -69,12 +73,16 @@ namespace UnitTestInteropServices
             Assert.AreEqual(6, actual);
 
             string s = "abc";
-            actual = unitTestCpp_f.f(s);
+            actual = (int) unitTestCpp_f.f(s);
             Assert.AreEqual(s.Length, actual);
 
             s = "ΑΒ";
-            actual = unitTestCpp_f.f(s);
+            actual = (int) unitTestCpp_f.f(s);
             Assert.AreEqual(s.Length, actual);
+
+            //UnitTestCpp._.ns.S ns_s = null;
+            //actual = unitTestCpp_f.f(ref ns_s);
+            //Assert.AreEqual(7, actual);
         }
 
         [TestMethod]
@@ -92,11 +100,11 @@ namespace UnitTestInteropServices
             Assert.AreEqual(4, actual);
 
             string s = "abc";
-            actual = unitTestCpp_f.f_5(s);
+            actual = (int) unitTestCpp_f.f_5(s);
             Assert.AreEqual(s.Length, actual);
             
             s = "ΑΒ";
-            actual = unitTestCpp_f.f_5(s);
+            actual = (int) unitTestCpp_f.f_5(s);
             Assert.AreEqual(s.Length, actual);
         }
 
