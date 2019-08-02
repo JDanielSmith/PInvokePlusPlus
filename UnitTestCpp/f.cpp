@@ -59,11 +59,11 @@ __declspec(dllexport) extern int abc(const S*)
 	return 6;
 }
 
-namespace ns
-{
-	struct S; // forward
-}
-__declspec(dllexport) extern int xyz(const ns::S*)
-{
-	return 7;
-}
+//namespace ns
+//{
+//	struct S; // forward
+//}
+//__declspec(dllexport) extern int xyz(const ns::S*)
+//{
+//	return 7;
+//}

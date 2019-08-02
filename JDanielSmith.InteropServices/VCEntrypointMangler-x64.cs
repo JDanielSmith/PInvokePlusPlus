@@ -6,43 +6,10 @@ using System.Runtime.InteropServices;
 
 namespace JDanielSmith.Runtime.InteropServices
 {
-	public class VCEntrypointMangler : IEntrypointMangler
+	public sealed class VCEntrypointMangler : IEntrypointMangler
 	{
-		internal class TypeToString
+		internal sealed class TypeToString 
 		{
-			readonly Dictionary<Type, string> typeToString_ = new Dictionary<Type, string>
-			{
-				// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
-				{ typeof(SByte), "C" }, // int8_t
-				// "D" // char
-				{ typeof(Byte), "E" }, // uint8_t, unsigned char
-
-				{ typeof(Int16), "F" },
-				{ typeof(UInt16), "G" },
-
-				{ typeof(Int32), "H" },
-				{ typeof(UInt32), "I" },
-
-				{ typeof(Int64), "_J" },
-				{ typeof(UInt64), "_K" },
-
-				{ typeof(float), "M" },
-				{ typeof(double), "N" },
-
-				{ typeof(Char), "_W" }, // wchar_t
-
-				{ typeof(void), "X" },
-			};
-			private string AsString(Type type, CharSet charSet)
-			{
-				if ((charSet == CharSet.Ansi) && (type == typeof(Char)))
-				{
-					return "D"; // char
-				}
-
-				return typeToString_[type];
-			}
-
 			readonly Dictionary<string, string> typeFullNameToString_ = new Dictionary<string, string>
 			{
 				// https://en.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
@@ -126,7 +93,6 @@ namespace JDanielSmith.Runtime.InteropServices
 			{
 				return AsString(type, CharSet.Unicode, isPtr: false, isConst: false);
 			}
-
 
 			public string AsString(ParameterInfo parameter, CharSet charSet)
 			{

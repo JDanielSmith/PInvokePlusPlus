@@ -8,11 +8,15 @@ namespace UnitTestInteropServices
     [TestClass]
     public class StructParameter
     {
-        public interface UnitTestCpp_f
+		public interface S
+		{
+		}
+
+		public interface UnitTestCpp_f
         {
             [DllImport("", ExactSpelling = true, PreserveSig = true)]
             [Extern]
-            int xyz([Ptr,Const] ref UnitTestCpp._.ns.S s);
+            int abc([Ptr,Const] ref S s);
         }
 
         [TestMethod]
@@ -20,8 +24,8 @@ namespace UnitTestInteropServices
         {
             var unitTestCpp_f = JDanielSmith.NativeLibraryBuilder.Default.ActivateInterface<UnitTestCpp_f>("UnitTestCpp");
 
-            UnitTestCpp._.ns.S ns_s = null;
-            var actual = unitTestCpp_f.xyz(ref ns_s);
+			S s = null;
+            var actual = unitTestCpp_f.abc(ref s);
             Assert.AreEqual(7, actual);
         }
     }
